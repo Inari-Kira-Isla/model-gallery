@@ -1,0 +1,80 @@
+<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>場景模型庫 · 3D Library</title>
+<style>
+:root{--bg:#0a0b10;--bg2:#11131d;--line:rgba(255,255,255,.09);--txt:#e9ecf5;--muted:#8b91a7;--accent:#7c5cff;--gold:#ffcf6b;--ok:#39d98a}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(1100px 560px at 82% -10%,rgba(124,92,255,.18),transparent 60%),var(--bg);color:var(--txt);font-family:"PingFang TC","Hiragino Sans GB",-apple-system,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+header{position:sticky;top:0;z-index:20;backdrop-filter:blur(14px);background:linear-gradient(180deg,rgba(10,11,16,.92),rgba(10,11,16,.55));border-bottom:1px solid var(--line)}
+.bar{max-width:1340px;margin:0 auto;padding:16px 24px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+h1{margin:0;font-size:20px;background:linear-gradient(90deg,#fff,#b9a8ff 55%,#22d3ee);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{font-size:12px;color:var(--muted)}
+.search{position:relative;margin-left:auto}
+.search input{width:280px;max-width:56vw;padding:10px 12px;border-radius:11px;background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--txt);font-size:15px;outline:none}
+.wrap{max-width:1340px;margin:0 auto;padding:22px 24px 90px}
+.sech{display:flex;align-items:center;gap:10px;margin:26px 0 14px}
+.sech h2{font-size:17px;margin:0}.sech .cnt{font-size:12px;color:var(--muted)}
+.badge{font-size:11px;padding:3px 9px;border-radius:7px;font-weight:700}
+.b-nc{background:#2a1410;color:#ffb38a;border:1px solid #5a2f1c}
+.b-cm{background:#0d2a1c;color:var(--ok);border:1px solid #1c5a3c}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:18px}
+.card{border-radius:15px;overflow:hidden;background:var(--bg2);border:1px solid var(--line);transform:translateY(12px);opacity:0;animation:rise .5s cubic-bezier(.2,.7,.2,1) forwards;transition:transform .25s,box-shadow .25s,border-color .25s}
+@keyframes rise{to{transform:none;opacity:1}}
+.card:hover{transform:translateY(-6px);box-shadow:0 18px 46px -14px #000;border-color:rgba(124,92,255,.5)}
+.card:hover img{transform:scale(1.07)}
+.thumb{aspect-ratio:1/1;background:#0d0f17;overflow:hidden}
+.thumb img{width:100%;height:100%;object-fit:cover;transition:transform .4s;display:block}
+.meta{padding:11px 12px 13px}.meta .nm{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meta .au{font-size:11px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meta a{color:#22d3ee;text-decoration:none;font-size:11px}
+.lock{border:1px dashed var(--line);border-radius:16px;padding:30px 22px;text-align:center;background:rgba(255,255,255,.02)}
+.lock h2{margin:0 0 6px}.lock p{color:var(--muted);font-size:13px;margin:0 0 16px}
+.lock input{padding:11px 14px;border-radius:11px;background:#0c0e16;border:1px solid var(--line);color:#fff;font-size:15px;outline:none;width:240px;max-width:70vw}
+.lock button{padding:11px 20px;border-radius:11px;border:none;cursor:pointer;font-weight:700;font-size:14px;background:linear-gradient(90deg,var(--accent),#5b8cff);color:#fff;margin-left:8px}
+.err{color:#ff7b7b;font-size:13px;margin-top:10px;min-height:18px}
+@media(max-width:600px){.bar{padding:13px 15px}.search{margin-left:0;flex:1 1 100%}.search input{width:100%;max-width:none;font-size:16px}.wrap{padding:16px 15px 80px}.grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}}
+#lockSection{display:none}</style></head><body>
+<header><div class="bar"><div><h1>場景模型庫</h1><div class="sub">Sketchfab 下載 · CC0/CC-BY 可商用 · 非商用需密碼 🔒</div></div>
+<div class="search"><input id="q" placeholder="搜尋名稱…" autocomplete="off"></div></div></header>
+<div class="wrap">
+  <div class="sech"><h2>🟢 可商用</h2><span class="badge b-cm">CC0 / CC-BY</span><span class="cnt" id="ncCnt"></span></div>
+  <div class="grid" id="ncGrid"></div>
+  <div id="lockSection">
+  <div class="sech"><h2>🔒 非商用</h2><span class="badge b-nc">NC 限非商用</span><span class="cnt" id="cmCnt"></span></div>
+  <div id="lock" class="lock"><h2>🔒 非商用模型已加密</h2><p>呢批唔可商用，輸入密碼先睇得到（AES-GCM）</p>
+    <div><input id="pw" type="password" placeholder="密碼" autocomplete="off"><button id="go">解鎖</button></div>
+    <div class="err" id="err"></div></div>
+  <div class="grid" id="cmGrid" style="display:none"></div>
+  </div>
+</div>
+<script>
+const OPEN=[{"name": "MV Spartan", "author": "ScottishMaritimeMuseum", "license": "CC0 Public Domain", "thumb": "https://media.sketchfab.com/models/e2c3ced464f14e3b864f15871bf6d87d/thumbnails/5de25d59c23d4495a01bb3a114daac0f/53100855574449ca92f3a629da016330.jpeg", "url": "https://sketchfab.com/3d-models/none-e2c3ced464f14e3b864f15871bf6d87d", "q": "environment", "uid": "e2c3ced464f14e3b864f15871bf6d87d"}, {"name": "SY Carola", "author": "ScottishMaritimeMuseum", "license": "CC0 Public Domain", "thumb": "https://media.sketchfab.com/models/0c121fdfa4f744f9851def9427d372c2/thumbnails/67a377abd6d54000a1216c03a804d790/46483527dc6845a782ec0c6cba632cd9.jpeg", "url": "https://sketchfab.com/3d-models/none-0c121fdfa4f744f9851def9427d372c2", "q": "environment", "uid": "0c121fdfa4f744f9851def9427d372c2"}, {"name": "SY Carola (point cloud)", "author": "ScottishMaritimeMuseum", "license": "CC0 Public Domain", "thumb": "https://media.sketchfab.com/models/17bd8188447b48baab75125b9ad20788/thumbnails/d45519c1e3e54153850a9ecdcf383a51/bb2216dabe3f4a098fcdb204d6c68ccd.jpeg", "url": "https://sketchfab.com/3d-models/none-17bd8188447b48baab75125b9ad20788", "q": "environment", "uid": "17bd8188447b48baab75125b9ad20788"}, {"name": "MV Spartan (Point Cloud)", "author": "ScottishMaritimeMuseum", "license": "CC0 Public Domain", "thumb": "https://media.sketchfab.com/models/3bf41cd55bd1406b99f7008c0184a057/thumbnails/84b245a9b6da464f84deea969554454a/ca26c903ea7c4d7281f9c8ebf95ddc2c.jpeg", "url": "https://sketchfab.com/3d-models/none-3bf41cd55bd1406b99f7008c0184a057", "q": "environment", "uid": "3bf41cd55bd1406b99f7008c0184a057"}, {"name": "Creel Basket", "author": "cineg", "license": "CC0 Public Domain", "thumb": "https://media.sketchfab.com/models/c4142764f11b4640b5951b37c2c4d1a5/thumbnails/4cd56d0bcba3446db4a7efd7e7af21e4/cb35b66e30f848f28da1eed6ef467a86.jpeg", "url": "https://sketchfab.com/3d-models/none-c4142764f11b4640b5951b37c2c4d1a5", "q": "environment", "uid": "c4142764f11b4640b5951b37c2c4d1a5"}, {"name": "Standing Arhat, 6th C CE, China", "author": "artsmia", "license": "CC0 Public Domain", "thumb": "https://media.sketchfab.com/models/5f209e2a3efa4ec18fae8daea2426af9/thumbnails/dbf1060bc3cc42dbb13469e518dd5b19/6d1ad07948a84ea798b538cd2caf0c0d.jpeg", "url": "https://sketchfab.com/3d-models/none-5f209e2a3efa4ec18fae8daea2426af9", "q": "environment", "uid": "5f209e2a3efa4ec18fae8daea2426af9"}, {"name": "Human Humerus Bone", "author": "cineg", "license": "CC0 Public Domain", "thumb": "https://media.sketchfab.com/models/12744d7c36be47d8ad94f620a22d649c/thumbnails/31c9dfb7737f4805a6a9893491906e32/a41f125505614e19bd38e39cae2b13be.jpeg", "url": "https://sketchfab.com/3d-models/none-12744d7c36be47d8ad94f620a22d649c", "q": "environment", "uid": "12744d7c36be47d8ad94f620a22d649c"}, {"name": "Bristol F.2B - First World War Airplane", "author": "technoscience3d", "license": "CC0 Public Domain", "thumb": "https://media.sketchfab.com/models/1df44f8ecf0b4b3888e07f841c1197ce/thumbnails/d5f40a4426ad4b5b852184dac72271e8/1920x1080.jpeg", "url": "https://sketchfab.com/3d-models/none-1df44f8ecf0b4b3888e07f841c1197ce", "q": "environment", "uid": "1df44f8ecf0b4b3888e07f841c1197ce"}, {"name": "Royal Factory B.E. 2c - First World War Airplane", "author": "technoscience3d", "license": "CC0 Public Domain", "thumb": "https://media.sketchfab.com/models/97bdead18da14e6d87d6725910b92562/thumbnails/cf81e297cbb741879fcd1402feea3139/1920x1080.jpeg", "url": "https://sketchfab.com/3d-models/none-97bdead18da14e6d87d6725910b92562", "q": "environment", "uid": "97bdead18da14e6d87d6725910b92562"}, {"name": "Stone Dice", "author": "cineg", "license": "CC0 Public Domain", "thumb": "https://media.sketchfab.com/models/520ba807f97a48e3bebedeb7f44e9bde/thumbnails/f32f44adf07b49199e80e97f8b9ac949/e54e2efe49814dc1a117112dd5a79029.jpeg", "url": "https://sketchfab.com/3d-models/none-520ba807f97a48e3bebedeb7f44e9bde", "q": "environment", "uid": "520ba807f97a48e3bebedeb7f44e9bde"}, {"name": "Castillo de Montroi / Montroi Castle", "author": "riberana", "license": "CC0 Public Domain", "thumb": "https://media.sketchfab.com/models/b91f93d6d4fd431eb4310038dca4b56c/thumbnails/035edcf00cd44e0ebfe931670f0fae58/13585ad3381949bbac95b7baf504ee55.jpeg", "url": "https://sketchfab.com/3d-models/none-b91f93d6d4fd431eb4310038dca4b56c", "q": "room interior", "uid": "b91f93d6d4fd431eb4310038dca4b56c"}, {"name": "Chandelier from the Great Synagogue in Oswięcim", "author": "WirtualneMuzeaMalopolski", "license": "CC0 Public Domain", "thumb": "https://media.sketchfab.com/models/f53d0a6d218c4b51973a6de830b60b0f/thumbnails/f1a558f6796042bc858012a5ad6cd4f8/f2c2cc9ce85a4b33b962bd9003a0744e.jpeg", "url": "https://sketchfab.com/3d-models/none-f53d0a6d218c4b51973a6de830b60b0f", "q": "city street", "uid": "f53d0a6d218c4b51973a6de830b60b0f"}, {"name": "The lamp shaft topped with a crowned eagle", "author": "WirtualneMuzeaMalopolski", "license": "CC0 Public Domain", "thumb": "https://media.sketchfab.com/models/32d1ce237e27408d82322f3e3cef703e/thumbnails/48b89b0ee0ca468abf55c80845204989/6a5bdbd3f4e74780a3108a49a271d8ca.jpeg", "url": "https://sketchfab.com/3d-models/none-32d1ce237e27408d82322f3e3cef703e", "q": "city street", "uid": "32d1ce237e27408d82322f3e3cef703e"}, {"name": "Street sign for Tischlerstraße", "author": "WirtualneMuzeaMalopolski", "license": "CC0 Public Domain", "thumb": "https://media.sketchfab.com/models/96ddd0a0db704dceb8b15ff1b5fdb4ea/thumbnails/7a2c0ca9f93049ab9b0de619f282c220/0ee312d778f046d78a0075a0a552c319.jpeg", "url": "https://sketchfab.com/3d-models/none-96ddd0a0db704dceb8b15ff1b5fdb4ea", "q": "city street", "uid": "96ddd0a0db704dceb8b15ff1b5fdb4ea"}, {"name": "A marble fragment from the Great Synagogue", "author": "WirtualneMuzeaMalopolski", "license": "CC0 Public Domain", "thumb": "https://media.sketchfab.com/models/bd1cca4db49440af8038376fc8566294/thumbnails/9b29e87fb2fd4149ba6714e5049b4cfe/751779fdf7b9435a89be52b8b4e38ed5.jpeg", "url": "https://sketchfab.com/3d-models/none-bd1cca4db49440af8038376fc8566294", "q": "city street", "uid": "bd1cca4db49440af8038376fc8566294"}, {"name": "Traveling in Autumn Mountains, 17th-18th C CE", "author": "artsmia", "license": "CC0 Public Domain", "thumb": "https://media.sketchfab.com/models/70400885173944bd804a7400b3180d45/thumbnails/bfcfbb2ffa444521affeb2b856af4a17/5899baf8507744649e13f34370bdc897.jpeg", "url": "https://sketchfab.com/3d-models/none-70400885173944bd804a7400b3180d45", "q": "nature landscape", "uid": "70400885173944bd804a7400b3180d45"}], BLOB="i/7t010zwnSM5A4WtkKVaas/IVfLidJMQ46ht3eYjsk1wV9t/MKpubV9o2J42w==", ITER=200000;
+function card(m){return `<div class="card" data-n="${(m.name||'').toLowerCase()}">
+  <div class="thumb"><img loading="lazy" src="${m.thumb||''}" alt=""></div>
+  <div class="meta"><div class="nm">${m.name||m.uid}</div><div class="au">${m.author||''} · ${m.license||''}</div>
+  <a href="${m.url||'#'}" target="_blank">Sketchfab ↗</a></div></div>`;}
+function paint(el,arr){el.innerHTML=arr.map(card).join('');}
+paint(document.getElementById('ncGrid'),OPEN);
+document.getElementById('ncCnt').textContent=OPEN.length+' 個';
+let CM=[];
+document.getElementById('q').oninput=e=>{const q=e.target.value.toLowerCase();
+  document.querySelectorAll('.card').forEach(c=>c.style.display=c.dataset.n.includes(q)?'':'none');};
+async function unlock(pw){
+  const raw=Uint8Array.from(atob(BLOB),c=>c.charCodeAt(0));
+  const salt=raw.slice(0,16),iv=raw.slice(16,28),ct=raw.slice(28);
+  const base=await crypto.subtle.importKey("raw",new TextEncoder().encode(pw),{name:"PBKDF2"},false,["deriveKey"]);
+  const key=await crypto.subtle.deriveKey({name:"PBKDF2",salt,iterations:ITER,hash:"SHA-256"},base,{name:"AES-GCM",length:256},false,["decrypt"]);
+  const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv},key,ct);
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+document.getElementById('go').onclick=async()=>{
+  const pw=document.getElementById('pw').value,err=document.getElementById('err');
+  err.textContent="解密中…";
+  try{CM=await unlock(pw);document.getElementById('lock').style.display='none';
+    const g=document.getElementById('cmGrid');g.style.display='grid';paint(g,CM);
+    document.getElementById('cmCnt').textContent=CM.length+' 個';
+    sessionStorage.setItem('pw',pw);
+  }catch(e){err.textContent="❌ 密碼錯誤";}
+};
+document.getElementById('pw').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('go').click();});
+const saved=sessionStorage.getItem('pw');if(saved){document.getElementById('pw').value=saved;document.getElementById('go').click();}
+</script></body></html>
