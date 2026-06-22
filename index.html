@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D 模型選型庫 · Poly Haven Live</title>
+<style>
+  :root{
+    --bg:#0a0b10; --bg2:#11131d; --panel:rgba(255,255,255,.04);
+    --line:rgba(255,255,255,.09); --txt:#e9ecf5; --muted:#8b91a7;
+    --accent:#7c5cff; --accent2:#22d3ee; --gold:#ffcf6b;
+    --shadow:0 18px 50px -12px rgba(0,0,0,.7);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(124,92,255,.18), transparent 60%),
+      radial-gradient(900px 500px at 0% 0%, rgba(34,211,238,.12), transparent 55%),
+      var(--bg);
+    color:var(--txt);
+    font-family:"PingFang TC","Hiragino Sans GB","Microsoft JhengHei",-apple-system,system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit}
+  /* ---------- header ---------- */
+  header{position:sticky;top:0;z-index:30;backdrop-filter:blur(14px);
+    background:linear-gradient(180deg,rgba(10,11,16,.92),rgba(10,11,16,.55));
+    border-bottom:1px solid var(--line)}
+  .bar{max-width:1340px;margin:0 auto;padding:18px 26px;display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+  .brand{display:flex;flex-direction:column;gap:2px;margin-right:auto}
+  .brand h1{margin:0;font-size:20px;font-weight:700;letter-spacing:.3px;
+    background:linear-gradient(90deg,#fff,#b9a8ff 55%,var(--accent2));
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .brand .sub{font-size:12px;color:var(--muted)}
+  .live{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--accent2)}
+  .live i{width:7px;height:7px;border-radius:50%;background:var(--accent2);
+    box-shadow:0 0 0 0 rgba(34,211,238,.6);animation:pulse 1.8s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(34,211,238,.55)}70%{box-shadow:0 0 0 9px rgba(34,211,238,0)}100%{box-shadow:0 0 0 0 rgba(34,211,238,0)}}
+  .search{position:relative}
+  .search input{width:300px;max-width:60vw;padding:11px 14px 11px 38px;border-radius:12px;
+    background:var(--panel);border:1px solid var(--line);color:var(--txt);font-size:14px;outline:none;transition:.2s}
+  .search input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,92,255,.18)}
+  .search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);opacity:.5}
+  select{padding:11px 12px;border-radius:12px;background:var(--panel);border:1px solid var(--line);
+    color:var(--txt);font-size:13px;outline:none;cursor:pointer}
+  /* ---------- filter pills ---------- */
+  .pills{max-width:1340px;margin:0 auto;padding:14px 26px 4px;display:flex;gap:9px;flex-wrap:wrap}
+  .pill{padding:7px 14px;border-radius:999px;border:1px solid var(--line);background:var(--panel);
+    color:var(--muted);font-size:12.5px;cursor:pointer;transition:.18s;user-select:none}
+  .pill:hover{color:var(--txt);border-color:rgba(124,92,255,.5)}
+  .pill.on{background:linear-gradient(90deg,var(--accent),#5b8cff);color:#fff;border-color:transparent;
+    box-shadow:0 6px 18px -6px rgba(124,92,255,.7)}
+  /* ---------- grid ---------- */
+  .wrap{max-width:1340px;margin:0 auto;padding:22px 26px 140px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:20px}
+  .card{position:relative;border-radius:16px;overflow:hidden;background:var(--bg2);
+    border:1px solid var(--line);cursor:pointer;transform:translateY(14px);opacity:0;
+    animation:rise .55s cubic-bezier(.2,.7,.2,1) forwards;transition:transform .28s,box-shadow .28s,border-color .28s}
+  @keyframes rise{to{transform:translateY(0);opacity:1}}
+  .card:hover{transform:translateY(-7px);box-shadow:var(--shadow);border-color:rgba(124,92,255,.55)}
+  .card:hover .thumb img{transform:scale(1.08)}
+  .thumb{position:relative;aspect-ratio:1/1;overflow:hidden;background:
+    linear-gradient(110deg,#13151f 30%,#1b1e2c 50%,#13151f 70%);background-size:200% 100%;animation:shimmer 1.4s infinite}
+  @keyframes shimmer{to{background-position:-200% 0}}
+  .thumb.loaded{animation:none;background:#0d0f17}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .5s,transform .4s ease}
+  .thumb img.in{opacity:1}
+  .poly{position:absolute;top:10px;left:10px;font-size:10.5px;padding:4px 8px;border-radius:8px;
+    background:rgba(0,0,0,.55);backdrop-filter:blur(4px);color:#cfd3e4;border:1px solid var(--line)}
+  .pick{position:absolute;top:9px;right:9px;width:30px;height:30px;border-radius:9px;border:1px solid var(--line);
+    background:rgba(0,0,0,.5);color:#fff;font-size:17px;line-height:1;display:grid;place-items:center;
+    opacity:0;transform:scale(.8);transition:.2s}
+  .card:hover .pick,.card.picked .pick{opacity:1;transform:scale(1)}
+  .card.picked{border-color:var(--gold)}
+  .card.picked .pick{background:var(--gold);color:#1a1300;border-color:transparent}
+  .meta{padding:12px 13px 14px}
+  .meta .name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .meta .cats{margin-top:6px;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .status{padding:60px 20px;text-align:center;color:var(--muted);font-size:14px}
+  .skel{border-radius:16px;aspect-ratio:.82/1;background:
+    linear-gradient(110deg,#13151f 30%,#1b1e2c 50%,#13151f 70%);background-size:200% 100%;animation:shimmer 1.4s infinite}
+  /* ---------- tray ---------- */
+  .tray{position:fixed;left:0;right:0;bottom:0;z-index:40;transform:translateY(120%);transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+  .tray.show{transform:translateY(0)}
+  .tray-in{max-width:1340px;margin:0 auto;padding:14px 26px;margin:14px auto;border-radius:16px;
+    background:rgba(17,19,29,.92);backdrop-filter:blur(16px);border:1px solid var(--line);box-shadow:var(--shadow);
+    display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+  .tray .label{font-size:13px;color:var(--muted)}
+  .tray .label b{color:var(--gold);font-size:16px}
+  .chips{display:flex;gap:7px;flex-wrap:wrap;flex:1;max-height:60px;overflow:auto}
+  .chip{display:inline-flex;align-items:center;gap:6px;padding:5px 8px 5px 10px;border-radius:8px;
+    background:var(--panel);border:1px solid var(--line);font-size:12px}
+  .chip span{cursor:pointer;color:var(--muted)}.chip span:hover{color:#ff7b7b}
+  .btn{padding:11px 18px;border-radius:12px;border:none;cursor:pointer;font-size:13.5px;font-weight:600;transition:.18s}
+  .btn.primary{background:linear-gradient(90deg,var(--accent),#5b8cff);color:#fff;box-shadow:0 8px 22px -8px rgba(124,92,255,.8)}
+  .btn.primary:hover{filter:brightness(1.1)}
+  .btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}
+  .btn.ghost:hover{color:#fff}
+  /* ---------- modal ---------- */
+  .modal{position:fixed;inset:0;z-index:60;display:none;place-items:center;padding:24px;
+    background:rgba(4,5,9,.7);backdrop-filter:blur(6px)}
+  .modal.show{display:grid;animation:fade .25s}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .sheet{width:min(760px,96vw);max-height:88vh;overflow:auto;border-radius:20px;background:var(--bg2);
+    border:1px solid var(--line);box-shadow:var(--shadow);animation:pop .3s cubic-bezier(.2,.8,.2,1)}
+  @keyframes pop{from{transform:translateY(20px) scale(.97);opacity:0}to{transform:none;opacity:1}}
+  .sheet .hero{aspect-ratio:16/9;background:#0d0f17}
+  .sheet .hero img{width:100%;height:100%;object-fit:cover}
+  .sheet .body{padding:22px 24px}
+  .sheet h2{margin:0 0 4px;font-size:22px}
+  .sheet .by{color:var(--muted);font-size:13px;margin-bottom:16px}
+  .specs{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+  .spec{padding:8px 12px;border-radius:10px;background:var(--panel);border:1px solid var(--line);font-size:12.5px}
+  .spec b{color:var(--accent2);font-weight:600}
+  .cmd{position:relative;background:#0c0e16;border:1px solid var(--line);border-radius:12px;
+    padding:14px 14px;font-size:12.5px;color:#b7e3c8;font-family:ui-monospace,Menlo,monospace;white-space:pre-wrap;word-break:break-all;margin-bottom:14px}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  .x{position:absolute;top:14px;right:16px;width:36px;height:36px;border-radius:10px;border:none;
+    background:rgba(0,0,0,.5);color:#fff;font-size:18px;cursor:pointer;z-index:2}
+  .x:hover{background:rgba(0,0,0,.75)}
+  /* ---------- toast ---------- */
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(40px);z-index:80;
+    background:#16321f;border:1px solid #2f6b44;color:#aef0c4;padding:12px 20px;border-radius:12px;
+    font-size:13.5px;opacity:0;transition:.3s;pointer-events:none}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  /* ---------- mobile ---------- */
+  @media (max-width:640px){
+    .bar{padding:13px 15px;gap:12px}
+    .brand{margin-right:0;flex:1 1 100%}
+    .brand h1{font-size:18px}
+    .search{order:3;flex:1 1 100%}
+    .search input{width:100%;max-width:none;font-size:16px}
+    select{flex:1 1 100%}
+    .pills{padding:10px 15px 2px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+    .pills::-webkit-scrollbar{display:none}
+    .pill{flex:0 0 auto}
+    .wrap{padding:16px 15px 180px}
+    .grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+    .meta{padding:10px}
+    .meta .name{font-size:13px}
+    .pick{opacity:1;transform:scale(1)}
+    .tray-in{padding:12px 14px;margin:10px;gap:10px}
+    .chips{flex:1 1 100%;order:2;max-height:84px}
+    .tray .label{flex:0 0 auto}
+    .btn{flex:1 1 0;text-align:center}
+    .sheet .hero{aspect-ratio:4/3}
+    .sheet .body{padding:18px 16px}
+    .sheet h2{font-size:19px}
+    .row .btn{flex:1 1 100%}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="brand">
+      <h1>3D 模型選型庫</h1>
+      <div class="sub"><span class="live"><i></i>Poly Haven 即時 · 全 CC0 免費可商用</span> · <span id="count">載入中…</span></div>
+    </div>
+    <div class="search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="q" placeholder="搜尋名稱 / 標籤…（chair, tree, rock…）" autocomplete="off">
+    </div>
+    <select id="sort">
+      <option value="new">最新加入</option>
+      <option value="name">名稱 A→Z</option>
+      <option value="poly">面數 低→高</option>
+    </select>
+  </div>
+  <div class="pills" id="pills"></div>
+</header>
+
+<div class="wrap">
+  <div class="grid" id="grid"></div>
+  <div class="status" id="status"></div>
+</div>
+
+<!-- selection tray -->
+<div class="tray" id="tray">
+  <div class="tray-in">
+    <div class="label">已選 <b id="tcount">0</b> 個模型</div>
+    <div class="chips" id="chips"></div>
+    <button class="btn ghost" id="clear">清空</button>
+    <button class="btn primary" id="copyAll">複製全部指令</button>
+  </div>
+</div>
+
+<!-- detail modal -->
+<div class="modal" id="modal">
+  <div class="sheet" id="sheet"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const CDN="https://cdn.polyhaven.com/asset_img/thumbs/";
+const grid=document.getElementById('grid'), statusEl=document.getElementById('status');
+const qEl=document.getElementById('q'), sortEl=document.getElementById('sort'), pillsEl=document.getElementById('pills');
+const countEl=document.getElementById('count');
+let ALL=[], catFilter="all", picks=new Map();
+
+function thumb(id,w=400){return CDN+id+".png?height="+w;}
+function cmdFor(p){return `幫我用 blender-mcp download_polyhaven_asset 落模型 "${p.id}"（${p.name}）入 scene`;}
+
+// ---- load ----
+(async function(){
+  // skeletons
+  grid.innerHTML=Array.from({length:12}).map(()=>'<div class="skel"></div>').join('');
+  try{
+    const r=await fetch("https://api.polyhaven.com/assets?type=models");
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    const data=await r.json();
+    ALL=Object.entries(data).map(([id,v])=>({
+      id, name:v.name||id, cats:v.categories||[], tags:v.tags||[],
+      poly:v.polycount||0, date:v.date_published||0,
+      author:Object.keys(v.authors||{})[0]||"Poly Haven",
+      dim:v.dimensions||null, res:v.max_resolution||null
+    }));
+    buildPills(); render();
+  }catch(e){
+    grid.innerHTML="";
+    statusEl.innerHTML="⚠️ 無法連到 Poly Haven API（"+e.message+"）。請檢查網路後重整。";
+  }
+})();
+
+function buildPills(){
+  const freq={};
+  ALL.forEach(p=>p.cats.forEach(c=>freq[c]=(freq[c]||0)+1));
+  const top=Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,14).map(x=>x[0]);
+  pillsEl.innerHTML=['all',...top].map(c=>
+    `<div class="pill${c==='all'?' on':''}" data-c="${c}">${c==='all'?'全部':c}</div>`).join('');
+  pillsEl.querySelectorAll('.pill').forEach(el=>el.onclick=()=>{
+    catFilter=el.dataset.c;
+    pillsEl.querySelectorAll('.pill').forEach(p=>p.classList.toggle('on',p===el));
+    render();
+  });
+}
+
+function render(){
+  const q=qEl.value.trim().toLowerCase();
+  let list=ALL.filter(p=>{
+    if(catFilter!=="all" && !p.cats.includes(catFilter)) return false;
+    if(!q) return true;
+    return p.name.toLowerCase().includes(q)||p.tags.some(t=>t.includes(q))||p.id.toLowerCase().includes(q);
+  });
+  const s=sortEl.value;
+  list.sort((a,b)=> s==="name"?a.name.localeCompare(b.name): s==="poly"?a.poly-b.poly : b.date-a.date);
+  countEl.textContent=list.length+" / "+ALL.length+" 個模型";
+  grid.innerHTML="";
+  if(!list.length){statusEl.textContent="沒有符合條件的模型，試試其他關鍵字。";return;}
+  statusEl.textContent="";
+  list.forEach((p,i)=>{
+    const c=document.createElement('div');
+    c.className="card"+(picks.has(p.id)?" picked":"");
+    c.style.animationDelay=Math.min(i*30,600)+"ms";
+    c.innerHTML=`
+      <div class="thumb"><img alt="${p.name}" loading="lazy"></div>
+      ${p.poly?`<div class="poly">${p.poly.toLocaleString()} 面</div>`:''}
+      <div class="pick" title="加入選擇">${picks.has(p.id)?'✓':'+'}</div>
+      <div class="meta"><div class="name">${p.name}</div>
+        <div class="cats">${(p.cats.join(' · '))||'—'}</div></div>`;
+    const img=c.querySelector('img'), wrap=c.querySelector('.thumb');
+    img.onload=()=>{img.classList.add('in');wrap.classList.add('loaded');};
+    img.onerror=()=>{wrap.classList.add('loaded');wrap.style.background='#0d0f17';};
+    img.src=thumb(p.id);
+    c.querySelector('.pick').onclick=ev=>{ev.stopPropagation();togglePick(p);c.classList.toggle('picked');c.querySelector('.pick').textContent=picks.has(p.id)?'✓':'+';};
+    c.onclick=()=>openModal(p);
+    grid.appendChild(c);
+  });
+}
+
+// ---- picks / tray ----
+function togglePick(p){picks.has(p.id)?picks.delete(p.id):picks.set(p.id,p);updateTray();}
+function updateTray(){
+  const t=document.getElementById('tray');
+  document.getElementById('tcount').textContent=picks.size;
+  t.classList.toggle('show',picks.size>0);
+  document.getElementById('chips').innerHTML=[...picks.values()].map(p=>
+    `<div class="chip">${p.name}<span data-id="${p.id}">✕</span></div>`).join('');
+  document.querySelectorAll('.chip span').forEach(s=>s.onclick=()=>{
+    picks.delete(s.dataset.id);updateTray();
+    document.querySelectorAll('.card').forEach(()=>{});render();
+  });
+}
+document.getElementById('clear').onclick=()=>{picks.clear();updateTray();render();};
+document.getElementById('copyAll').onclick=()=>{
+  const ids=[...picks.values()].map(p=>p.id);
+  const txt=`幫我用 blender-mcp download_polyhaven_asset 逐個落以下 Poly Haven 模型入 scene：\n`+
+    [...picks.values()].map(p=>`- ${p.id}（${p.name}）`).join('\n');
+  copy(txt,`已複製 ${ids.length} 個模型的指令，貼返畀我即可`);
+};
+
+// ---- modal ----
+function openModal(p){
+  const dim=p.dim?p.dim.map(d=>Math.round(d)+"mm").join(" × "):"—";
+  const res=p.res?p.res[0]+"px":"—";
+  document.getElementById('sheet').innerHTML=`
+    <button class="x" onclick="closeModal()">✕</button>
+    <div class="hero"><img src="${thumb(p.id,900)}" alt="${p.name}"></div>
+    <div class="body">
+      <h2>${p.name}</h2>
+      <div class="by">作者：${p.author} · 授權 CC0 · <a href="https://polyhaven.com/a/${p.id}" target="_blank" style="color:var(--accent2)">Poly Haven 頁面 ↗</a></div>
+      <div class="specs">
+        <div class="spec">面數 <b>${p.poly?p.poly.toLocaleString():'—'}</b></div>
+        <div class="spec">尺寸 <b>${dim}</b></div>
+        <div class="spec">材質解析度 <b>${res}</b></div>
+        <div class="spec">分類 <b>${p.cats.join(', ')||'—'}</b></div>
+      </div>
+      <div class="cmd" id="cmd">${cmdFor(p)}</div>
+      <div class="row">
+        <button class="btn primary" onclick="copy(document.getElementById('cmd').textContent,'已複製指令，貼返畀我就會落入 Blender')">複製指令</button>
+        <button class="btn ghost" onclick="copy('${p.id}','已複製 asset ID: ${p.id}')">複製 ID</button>
+        <button class="btn ghost" id="addBtn">${picks.has(p.id)?'✓ 已加入選擇':'＋ 加入選擇'}</button>
+      </div>
+    </div>`;
+  document.getElementById('addBtn').onclick=()=>{togglePick(p);render();document.getElementById('addBtn').textContent=picks.has(p.id)?'✓ 已加入選擇':'＋ 加入選擇';};
+  document.getElementById('modal').classList.add('show');
+}
+function closeModal(){document.getElementById('modal').classList.remove('show');}
+document.getElementById('modal').onclick=e=>{if(e.target.id==='modal')closeModal();};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+
+// ---- utils ----
+function copy(txt,msg){navigator.clipboard.writeText(txt).then(()=>toast(msg)).catch(()=>toast('複製失敗，請手動選取'));}
+let tt;function toast(m){const el=document.getElementById('toast');el.textContent=m;el.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),2600);}
+
+qEl.oninput=render; sortEl.onchange=render;
+</script>
+</body>
+</html>
